@@ -18,7 +18,7 @@ from exceptions import *
 class Usb(Escpos):
     """ Define USB printer """
 
-    def __init__(self, idVendor, idProduct, interface=0, bus=None, address=None, in_ep=0x82, out_ep=0x01):
+    def __init__(self, idVendor, idProduct, interface=0, device=None, in_ep=0x82, out_ep=0x01):
         """
         @param idVendor  : Vendor ID
         @param idProduct : Product ID
@@ -26,8 +26,7 @@ class Usb(Escpos):
         @param in_ep     : Input end point
         @param out_ep    : Output end point
         """
-	self.bus       = bus
-	self.address   = address
+	self.device    = device
         self.idVendor  = idVendor
         self.idProduct = idProduct
         self.interface = interface
@@ -38,20 +37,10 @@ class Usb(Escpos):
 
     def open(self):
         """ Search device on USB tree and set is as escpos device """
-	bus_matcher = None
-	if self.bus != None and self.address != None:
-		bus_matcher = lambda d:d.bus==self.bus and d.address==self.address
-	elif self.bus != None:
-		bus_matcher = lambda d:d.bus==self.bus
-	elif self.address != None:
-		bus_matcher = lambda d:d.address==self.address
-		
-        self.device = usb.core.find(idVendor=self.idVendor, idProduct=self.idProduct, custom_matcher=bus_matcher)
+	if self.device is None:
+            self.device = usb.core.find(idVendor=self.idVendor, idProduct=self.idProduct)
         if self.device is None:
             print "Cable isn't plugged in"
-
-	self.bus = self.device.bus
-	self.address = self.device.address
 	
         if self.device.is_kernel_driver_active(0):
             try:
